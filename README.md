@@ -1,6 +1,8 @@
 # covid-django
 
-Ejemplo mínimo de cómo levantar un servidor web con Django
+Ejemplo mínimo de cómo levantar un servidor web con Django.
+Para armarlo, me basé en 
+[https://developer.mozilla.org/en-US/docs/Learn/Server-side]
 
 Para construir este sitio
 Para crear el proyecto cree la carpeta raíz y ejecuté las siguientes 
