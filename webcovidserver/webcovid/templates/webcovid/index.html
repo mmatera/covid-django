@@ -1,0 +1,188 @@
+<!-- index.html -->
+{% load static %}
+<!DOCTYPE html>
+<html>
+  <head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Evolución del tiempo característico del COVID 19 en diferentes regiones</title>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  body{
+      background-color:#CCCCFF;
+      background-position: 50%-34px;
+      background-attachment:fixed;
+      background-image:url("{% static 'covid/images/background2.jpg' %}");
+  }
+  .content{
+      background-color:white;
+      padding:20px;
+      width: 800px;
+      justify-content: center;
+      margin: auto;
+  }
+  .controls{
+      border: black;
+      border-style: inset;
+      padding: 5px;
+      margin: 10px;
+      background-color: #EEEEEE;
+  }
+</style>
+
+</head>
+  <body>
+
+<div class="content">
+<div class="main-text">    
+    <h1 id="Levantar-Datos-a-nivel-mundial-(Fuente:-John-Hopkings-University-+-Wikipedia)">Levantar Datos a nivel mundial (Fuente: John Hopkings University + Wikipedia)</h1><p>La actualización de estos por país es automática, mientras que la de los casos en las provincias Argentinas debe hacerse manualmente. Por este motivo, los datos de las provincias argentinas sólo se actualizan cada cierto tiempo, de acuerdo a los reportes del ministerio de salud publicados en wikipedia (<a href="https://en.wikipedia.org/wiki/Template:COVID-19_pandemic_data/Argentina_medical_cases_by_province">https://en.wikipedia.org/wiki/Template:COVID-19_pandemic_data/Argentina_medical_cases_by_province</a>).</p>
+<p>En lo siguiente, el día 1 corresponde al 22.01.2020, el día 11
+al 01.02.2020, el día 39 al 01.03.2020, el día 62 al 01.04.2020
+  y el día 101 al 01.05.2020</p>
+
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Evoluci%C3%B3n--de-los-casos-activos-en-diferentes-paises-y-evoluci%C3%B3n-del-factor-de-contagio">Evolución  de los casos activos en diferentes paises y evolución del factor de contagio</h2><p>Un parámetro importante que caracteriza la propagación de la enfermedad es el $r_0$, definido como el número medio de contagios que produce cada individuo infectado. Esta cantidad puede estimarse, de acuerdo al modelo SEIR, según
+$$
+r_0=\frac{\Delta C}{I}
+$$
+con \(\Delta C\) el cambio diario en el número de casos confirmados, e \(I\) el número de infectados activos.</p>
+<p>$r_0$ es una cantidad que depende de la población susceptible, de la contagiosidad de la enfermedad, así como de diferentes prácticas culturales, aspectos genéticos de la población, y de las políticas sanitarias.</p>
+<p>La infección puede darse por "controlada", si el tiempo característico \(\tau=\frac{\ln(2)}{R_0}\) resulta mayor al tiempo de recuperación, de manera que los nuevos infectados no llegen a remplazar a los pacientes recuperados. Para el caso del COVID19, el tiempo de recuperación es de alrededor de 20 días, por lo que si \(\tau\) es menor que ese valor, es de esperarse un crecimiento exponencial en el número de infectados activos. La línea punteada corresponde a \(\tau=21\) días.</p>
+</div>
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Los casos activos son aquellos que en un día determinado se encuentran enfermos y con la potencialidad de contagiar a sus contactos.</p>
+</div>
+</div>
+
+<div class="interactive-graph">
+  <div style="display:block; justify-content: space-between;width:100%;">
+    <div id="plot-container" class="generic-plot-container" style="min-height:500px;"></div>
+
+    <div class="controls">
+    
+    <label for="region" class="form-label">Región</label>
+    <select id="region" onchange="updatePlot()" value="Argentina-Buenos Aires">
+      <!-- Populate the dropdown with options -->
+      {% for node in regiones %}
+      <option value="{{node}}"> {{node}} </option>
+      {% endfor %}
+      <!-- Add more options as needed -->
+    </select><br/>
+    <label for="inicio" class="form-label">Día Inicio</label>
+    <input type="range" class="form-range" id="inicio" min=0 max=1000 value=0 onchange="updatePlot()" ><br/>
+    <label for="fin" class="form-label">Día Fin</label>
+    <input type="range" class="form-range" id="fin" min=0 max=1000 value=1000 onchange="updatePlot()" ><br/>
+
+    <label for="scaleleft" class="form-label">Escala izquierda</label>
+    <select type="dropdown" value="normal" onchange="updatePlot()"  class="form-dropdown" id="scaleleft">
+      <option  value="normal">Normal</option>
+      <option  value="log">Log</option>
+    </select></br>
+    <label for="scaleleft" class="form-label">Escala derecha</label>
+    <select type="dropdown" value="normal" onchange="updatePlot()"  class="form-dropdown" id="scaleright">
+      <option  value="normal">Normal</option>
+      <option  value="log">Log</option>
+    </select></br>
+    <label for="show-actives" class="form-label">Mostrar casos activos</label>
+    <input type="checkbox" id="show-actives"  onchange="updatePlot()"><br/>
+    <label for="show-fit" class="form-label">Mostrar ajuste</label>
+    <input type="checkbox" id="show-fit"  onchange="updatePlot()"><br/>
+    {% csrf_token %}
+    </div>
+</div>
+
+</div>
+</div>
+
+    <script>
+        // JavaScript code to update the plot
+      function updatePlot(){
+          // AJAX request to get data based on the selected dropdown value
+	  const region = document.getElementById("region").value;
+	  const escala_izq = document.getElementById("scaleleft").value;
+	  const escala_der = document.getElementById("scaleright").value;
+	  const showfit = document.getElementById("show-fit").checked;
+	  const showactives = document.getElementById("show-actives").checked;
+	  const start = document.getElementById("inicio").valueAsNumber;
+	  const end = document.getElementById("fin").valueAsNumber;
+
+	  var ajaxrequest = $.ajax({
+	      type:"POST",
+	      url:"get_data/",
+	      data:{region:region,
+		    tendencia:showfit,
+		    start:start,
+		    end:end,
+                    csrfmiddlewaretoken: document.getElementsByName("csrfmiddlewaretoken")[0].value
+              },
+	      success: data =>{
+                  // Update the Plotly plot with the new data
+                  var taus = {
+                      x: data.ts,
+                        y: data.values,
+                      type: 'scatter',
+		      name:"tau",
+                  };
+		  var threshold = {
+                      x: data.ts,
+                      y: new Array(data.ts.length).fill(21),
+                      type: 'scatter',
+		      name:"21 días",
+		      mode: 'lines',		   
+		      line: { 
+			  width: 1,
+			  dash: 'dash',
+		      }			  		
+                  };
+		  
+		  plots = [taus, threshold];
+		  if (showactives){
+                      var activos = {
+                          x: data.ts,
+                          y: data.activos,
+                          type: 'scatter',
+			  name:"casos activos",
+			  yaxis:"y2",
+                      };
+		      plots.push(activos);
+		  }
+                  var layout = {
+                        title: 'Inversa de la tasa de infección',
+                        xaxis: { title: 'dias' },
+                        yaxis: { title: 'tau', type: escala_izq },
+			yaxis2: {
+			    title: 'casos',
+			    /*titlefont: {color: 'rgb(148, 103, 189)'},
+			    tickfont: {color: 'rgb(148, 103, 189)'},*/			   
+			    overlaying: 'y',
+			    type: escala_der,
+			    side: 'right',			
+			},
+                  };
+		  if ("fit" in data && showfit){
+		      var fitdata = {
+                          x: data.ts,
+                          y: data.fit,
+                          type: 'scatter',
+			  name:"ajuste",
+		      };
+		      plots.push(fitdata)
+		  }
+		  Plotly.newPlot('plot-container', plots, layout);
+              },
+	      dataType:"json",
+	  });	  
+        }
+      updatePlot();
+    </script>
+
+</body>
+</html>
